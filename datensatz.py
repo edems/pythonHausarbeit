@@ -4,7 +4,7 @@
 #
 #
 # username = 'adam'
-# password = ''
+# password = 'KpCamSP0GZKrGGnan6uQ'
 # host = 'hausarbeit.mysql.database.azure.com'
 # database = 'hausarbeit'
 # engine = create_engine(f"mysql+mysqlconnector://{username}:{password}@{host}/{database}", echo=True)
@@ -67,9 +67,10 @@ class TestData(Data):
     pass
 
 class IdealFunction(Data):
+    # Implementierung der Vorhersagefunktion für die ideale Funktion
     def predict(self, x):
-        # Hier implementierst du die Vorhersagefunktion für die ideale Funktion
-        pass
+
+        return np.interp(x, self.x, self.y)
 
 class QuadraticFitting:
     def __init__(self, train_data, ideal_functions):
@@ -127,10 +128,10 @@ for i, train_data in enumerate(train_data):
     # print(" Das ist Y")
     # print(train_data.y)
     plt.scatter(train_data.x, train_data.y, label='Train Data')
-    # plt.plot(train_data.x, best_fits[i].predict(train_data.x), label='Best Fit')
+    plt.plot(train_data.x, best_fits[i].predict(train_data.x), label='Best Fit')
     plt.xlabel('x')
     plt.ylabel('y')
-    # plt.title(f'Best Fit {i+1}')
+    plt.title(f'Best Fit {i+1}')
     plt.legend()
 
 plt.show()
