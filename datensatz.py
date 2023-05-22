@@ -4,7 +4,7 @@
 #
 #
 # username = 'adam'
-# password = 'KpCamSP0GZKrGGnan6uQ'
+# password = ''
 # host = 'hausarbeit.mysql.database.azure.com'
 # database = 'hausarbeit'
 # engine = create_engine(f"mysql+mysqlconnector://{username}:{password}@{host}/{database}", echo=True)
