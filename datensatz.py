@@ -4,7 +4,7 @@
 #
 #
 # username = 'adam'
-# password = ''
+# password = 'KpCamSP0GZKrGGnan6uQ'
 # host = 'hausarbeit.mysql.database.azure.com'
 # database = 'hausarbeit'
 # engine = create_engine(f"mysql+mysqlconnector://{username}:{password}@{host}/{database}", echo=True)
@@ -50,94 +50,108 @@
 #     session.close()
 
 
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-
 matplotlib.use('Qt5Agg')
 from bokeh.plotting import figure, output_file, show
 from bokeh.io import output_notebook
-
 output_notebook()
 
-class Data:
-    def __init__(self, x, y):
+
+class Abbild:
+    def __init__(self, x, y, name):
         self.x = x
         self.y = y
+        self.name = name
 
-class TrainingData(Data):
-    pass
 
-class TestData(Data):
-    pass
+class Data:
+    def __init__(self, filename):
+        data_frame = pd.read_csv(filename)
+        self.abbildliste = []
+        for datensatz in data_frame:
+            if 'x' != datensatz:
+                x = data_frame['x'].values
+                y = data_frame[datensatz].values
+                name = datensatz
+                self.abbildliste.append(Abbild(x, y, name))
 
-class IdealFunction(Data):
-    pass # Implementierung der Vorhersagefunktion für die ideale Funktion
+    def __iter__(self):
+        self.index = 0
+        return self
+
+    def __next__(self):
+        if self.index >= len(self.abbildliste):
+            raise StopIteration
+        value = self.abbildliste[self.index]
+        self.index += 1
+        return value
+
+
+# @property
+#     def get_abbild(self):
+#         return self.abbildliste
 
 
 class QuadraticFitting:
     def __init__(self, train_data, ideal_functions):
         self.train_data = train_data
         self.ideal_functions = ideal_functions
+        self.best_fits = []
+        self.best_fits2 = []
 
-    def fit2(self, test_data):
-        best_fits = []
-        test_deviations = []
+    def fit2(self):
+
         for train_data in self.train_data:
             best_fit = None
             min_sum_squared_diff = float('inf')
             train_x = train_data.x
             train_y = train_data.y
-            print("neuer satz")
-            j = 0
+            # print("neuer satz")
+            # j = 0
             for ideal_function in self.ideal_functions:
-                j += 1
+                # j += 1
                 ideal_x = ideal_function.x
                 ideal_y = ideal_function.y
-                if (train_y is None) or (ideal_y is None):
-                    break
-                else:
-                    A = np.vstack([ideal_x, np.ones(len(ideal_x))]).T
-                    m, c = np.linalg.lstsq(A, ideal_y, rcond=None)[0]
-                    ideal_y_fit = m * train_x + c
-                    sum_squared_diff = np.sum(np.square(train_y - ideal_y_fit))
+                # if (train_y is None) or (ideal_y is None):
+                #     break
+                # else:
+                A = np.vstack([ideal_x, np.ones(len(ideal_x))]).T
+                m, c = np.linalg.lstsq(A, ideal_y, rcond=None)[0]
+                ideal_y_fit = m * train_x + c
+                sum_squared_diff = np.sum(np.square(train_y - ideal_y_fit))
 
                 if sum_squared_diff < min_sum_squared_diff:
                     min_sum_squared_diff = sum_squared_diff
                     best_fit = ideal_function
-                    print(j)
-            best_fits.append(best_fit)
+                    # print(j)
+            self.best_fits.append(best_fit)
+    def show_aufgeins(self):
+        i = 0
 
-        return best_fits
+        for train_data in train:
+            p = figure(title=f'Best Fit ', x_axis_label='x', y_axis_label='y')
+            train_x = train_data.x
+            train_y = train_data.y
 
-# Funktion zum Laden der Daten aus einer CSV-Datei mit pandas
-def load_data_from_csv(filename):
-    data_frame = pd.read_csv(filename)
-    x = data_frame['x'].values
-    y = data_frame.drop('x', axis=1).values
-    return x, y
-
-# Daten aus den CSV-Dateien laden
-train_x, train_y = load_data_from_csv('train.csv')
-test_x, test_y = load_data_from_csv('test.csv')
-ideal_x, ideal_y = load_data_from_csv('ideal.csv')
-
-# Daten erstellen
-train_data = [TrainingData(train_x, train_y[:, i]) for i in range(train_y.shape[1])]
-test_data = [TestData(test_x, test_y[:, i]) for i in range(test_y.shape[1])]
-ideal_functions2 = [IdealFunction(ideal_x, ideal_y[:, i]) for i in range(ideal_y.shape[1])]
-
-quadratic_fitting2 = QuadraticFitting(train_data, ideal_functions2)
-best_fits2 = quadratic_fitting2.fit2(ideal_functions2)
-
-# Visualisierung der Daten und Anpassungen
-for i, train_data in enumerate(train_data):
-    p = figure(title=f'Best Fit {i+1}', x_axis_label='x', y_axis_label='y')
-    p.scatter(train_data.x, train_data.y, legend_label='Train Data', color='blue')
-    p.line(train_data.x, best_fits2[i].predict(train_data.x), legend_label='Best Fit2', color='red')
-    output_file(f'best_fit_{i+1}.html')
-    show(p)
+            p.scatter(train_x, train_y, legend_label='Train Data', color='blue')
+            # p.line(train_x, train_y, legend_label='Train Data', color='blue')
+            x = self.best_fits[i].x
+            y = self.best_fits[i].y
+            p.line(x, y, legend_label=self.best_fits[i].name, color='red')
+            output_file(f'best_fit_{i+1}.html')
+            show(p)
+            i+=1
+            p = None
 
 
+
+train = Data('train.csv')
+test = Data('test.csv')
+ideal = Data('ideal.csv')
+ergebnis = QuadraticFitting(train, ideal)
+ergebnis.fit2()
+ergebnis.show_aufgeins()
+print("fertig")
