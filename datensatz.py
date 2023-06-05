@@ -15,8 +15,8 @@ output_notebook()
 
 
 class MeineHelperKlasse:
-    def __init__(self, filename):
-        self.names = filename
+    def __init__(self):
+        self.names = ""
         self.username = 'adam'
         self.password = 'KpCamSP0GZKrGGnan6uQ'
         self.host = 'hausarbeit.mysql.database.azure.com'
@@ -71,110 +71,15 @@ class MeineHelperKlasse:
                 for column in columns:
                     print(column['name'], column['type'])
                 # Inhalt der Tabelle abrufen
-                # results = session.query(tables).all()
                 result_proxy = session.execute(text(f"SELECT * FROM {table}"))
                 results = result_proxy.fetchall()
 
                 # Ergebnisse ausgeben
                 for row in results:
                     print(row)
-                # Tabelleninhalt ausgeben
-                # print("Content:")
-                # for row in results:
-                #     print(row)
             session.close()
 
 
-# class My:
-#     def __int__(self, names):
-#         self.names = names
-# self.username = 'adam'
-# self.password = 'KpCamSP0GZKrGGnan6uQ'
-# self.host = 'hausarbeit.mysql.database.azure.com'
-# self.database = 'hausarbeit'
-# self.engine = create_engine(f"mysql+mysqlconnector://{self.username}:{self.password}@{self.host}/{self.database}", echo=True)
-# self.inspector = inspect(self.engine)
-
-# def df_into_sql(self, df, table_name):
-#
-#     copy_of_function_data = df.copy()
-#     copy_of_function_data.columns = [name.capitalize() + table_name for name in copy_of_function_data.columns]
-#     copy_of_function_data.set_index(copy_of_function_data.columns[0], inplace=True)
-#
-#     copy_of_function_data.to_sql(
-#         df,
-#         self.engine,
-#         if_exists="replace",
-#         index=True,
-#     )
-#
-# def write_all_table(self):
-#     with self.engine.connect() as connection:
-#     # Session erstellen
-#         Session = sessionmaker(bind=connection)
-#         session = Session()
-#
-#         # Alle Tabellen löschen
-#         tables = self.inspector.get_table_names()
-#         # for table_name in tables:
-#         #     drop_table_stmt = text(f"DROP TABLE {table_name}")
-#         #     connection.execute(drop_table_stmt)
-#         for table in tables:
-#             print("Meine neue Table")
-#             print(table)
-#
-#         # result = session.query(MeinetestTabelle).all()
-#
-#         # Ergebnis ausgeben
-#         # for row in result:
-#         #     print(row.id, row.column1, row.column2, row.column3)
-#
-#         # Verbindung schließen (automatisch durch das 'with'-Statement)
-#         session.close()
-
-
-# Basisklasse für die Tabellendeklaration
-# Base = declarative_base()
-
-# Tabelle deklarieren
-# class MeinetestTabelle(Base):
-#     __tablename__ = 'meinetesttable'
-#     id = Column(Integer, primary_key=True, autoincrement=True)
-#     column1 = Column(String(255))
-#     column2 = Column(Integer)
-#     column3 = Column(Float)
-
-# Tabelle erstellen, wenn sie noch nicht existiert
-# Base.metadata.create_all(bind=engine, checkfirst=True)
-
-# Inspektor erstellen
-
-
-# Verbindung aufbauen und Session verwenden
-# with engine.connect() as connection:
-#     # Session erstellen
-#     Session = sessionmaker(bind=connection)
-#     session = Session()
-#
-#     # Alle Tabellen löschen
-#     tables = inspector.get_table_names()
-#     for table_name in tables:
-#         drop_table_stmt = text(f"DROP TABLE {table_name}")
-#         connection.execute(drop_table_stmt)
-#     for table in tables:
-#         print("Meine neue Table")
-#         print(table)
-#
-#     # result = session.query(MeinetestTabelle).all()
-#
-#     # Ergebnis ausgeben
-#     # for row in result:
-#     #     print(row.id, row.column1, row.column2, row.column3)
-#
-#     # Verbindung schließen (automatisch durch das 'with'-Statement)
-#     session.close()
-
-#
 class DataBasis:
     def __init__(self):
         self.data_frame = pd.DataFrame
@@ -262,23 +167,58 @@ class TestData(DataBasis):
         self.index += 1
         return value
 
+class BestFit(DataBasis):
+    def __init__(self, train_df):
+        DataBasis.__init__(self)
+        self.data_frame_train_data = train_df
+        self.data_frame_bestfit = pd.DataFrame()
+        self.abbildliste_bestfit = []
+        self.abbildliste_traindata = []
+        for datensatz in self.data_frame_train_data:
+            if 'x' != datensatz:
+                x = self.data_frame_train_data['x'].values
+                y = self.data_frame_train_data[datensatz].values
+                name = datensatz
+                self.abbildliste_traindata.append(Abbild(x, y, name))
+
+    def add_data_to_bestfit(self, abbild):
+        self.abbildliste_bestfit.append(Abbild(abbild.x, abbild.y, abbild.name))
+
+    def fill_bestfit_df(self):
+        for ideal_function in self.abbildliste_bestfit:
+            # tx = pd.DataFrame({'x': ideal_function.x, ideal_function.name: ideal_function.y})
+            self.data_frame_bestfit = pd.concat([self.data_frame_bestfit, pd.DataFrame({'x': ideal_function.x,})]).drop_duplicates(subset='x', keep='first')
+            tt = pd.DataFrame({str(ideal_function.name): ideal_function.y})
+            self.data_frame_bestfit = pd.concat([self.data_frame_bestfit, tt], axis=1)
+
+
+class CheckFit(DataBasis):
+    def __init__(self, test_data, best_fit):
+        DataBasis.__init__(self)
+        self.data_frame_test_data = test_data.data_frame
+        self.data_frame_bestfit = best_fit.data_frame_bestfit
+        self.abbildliste_bestfit = best_fit.abbildliste_bestfit
+        self.abbildliste_testdata = []
+        self.abbildliste_passendepunkte = []
+        self.distance = None
+    def add_match_punkt(self, abbild):
+        self.abbildliste_passendepunkte.append(abbild)
+
+
 
 class QuadraticFitting:
-    def __init__(self, train_data, ideal_functions, test_data):
-        self.train_data = train_data
-        self.ideal_functions = ideal_functions
-        self.test_data = test_data
-        self.best_fits = []
-        self.best_fits2 = []
+    def __init__(self):
+        pass
 
-    def fit2(self):
-
-        for train_data in self.train_data:
+    @staticmethod
+    def fit2(train_data, ideal_functions):
+        best_fits = BestFit(train_data.data_frame)
+        for train_data in train_data:
             best_fit = None
             min_sum_squared_diff = float('inf')
             train_x = train_data.x
             train_y = train_data.y
-            for ideal_function in self.ideal_functions:
+            for ideal_function in ideal_functions:
                 ideal_x = ideal_function.x
                 ideal_y = ideal_function.y
                 A = np.vstack([ideal_x, np.ones(len(ideal_x))]).T
@@ -290,52 +230,57 @@ class QuadraticFitting:
                     min_sum_squared_diff = sum_squared_diff
                     best_fit = ideal_function
                     # print(j)
-            self.best_fits.append(best_fit)
+            best_fits.add_data_to_bestfit(best_fit)
+        best_fits.fill_bestfit_df()
+        return best_fits
 
-    def show_aufgeins(self):
+    @staticmethod
+    def show_aufgeins(best_fit):
         i = 0
-        for train_data in train:
+        for train_data in best_fit.abbildliste_traindata:
             p = figure(title=f'Best Fit ', x_axis_label='x', y_axis_label='y')
             train_x = train_data.x
             train_y = train_data.y
 
             p.scatter(train_x, train_y, legend_label='Train Data', color='blue')
-            x = self.best_fits[i].x
-            y = self.best_fits[i].y
-            p.line(x, y, legend_label=self.best_fits[i].name, color='red')
+            x = best_fit.abbildliste_bestfit[i].x
+            y = best_fit.abbildliste_bestfit[i].y
+            p.line(x, y, legend_label=best_fit.abbildliste_bestfit[i].name, color='red')
             output_file(f'best_fit_{i + 1}.html')
             show(p)
             i += 1
             p = None
 
-    def locate_y_based_on_x(self, x, ideal_function):
+    @staticmethod
+    def locate_y_based_on_x(x, ideal_function):
         search_key = ideal_function["x"] == x
         return ideal_function.loc[search_key].iat[0, 1]
 
-    def show_aufgzwei(self):
+    @staticmethod
+    def show_aufgzwei(bestm):
         p = figure(title="y36", x_axis_label='x', y_axis_label='y')
         p2 = figure(title="y11", x_axis_label='x', y_axis_label='y')
         p3 = figure(title="y2", x_axis_label='x', y_axis_label='y')
         p4 = figure(title="y33", x_axis_label='x', y_axis_label='y')
-        for train_data in self.best_fits2:
+        for train_data in bestm.abbildliste_passendepunkte:
             if (train_data.name == "y36"):
                 mx = pd.DataFrame(
-                    {'x': self.ideal_functions.data_frame["x"], 'y': self.ideal_functions.data_frame[train_data.name]})
+                    {'x': bestm.data_frame_bestfit["x"], 'y': bestm.data_frame_bestfit[train_data.name]})
                 p.scatter(train_data.x, train_data.y, fill_color="red", legend_label="Test point", size=8)
                 p.line(mx["x"], mx["y"], legend_label=train_data.name, color='blue')
             if (train_data.name == "y11"):
                 mx2 = pd.DataFrame(
-                    {'x': self.ideal_functions.data_frame["x"], 'y': self.ideal_functions.data_frame[train_data.name]})
+                    {'x': bestm.data_frame_bestfit["x"], 'y': bestm.data_frame_bestfit[train_data.name]})
                 p2.scatter(train_data.x, train_data.y, fill_color="red", legend_label="Test point", size=8)
                 p2.line(mx2["x"], mx2["y"], legend_label=train_data.name, color='blue')
             if (train_data.name == "y2"):
                 mx3 = pd.DataFrame(
-                    {'x': self.ideal_functions.data_frame["x"], 'y': self.ideal_functions.data_frame[train_data.name]})
+                    {'x': bestm.data_frame_bestfit["x"], 'y': bestm.data_frame_bestfit[train_data.name]})
                 p3.scatter(train_data.x, train_data.y, fill_color="red", legend_label="Test point", size=8)
                 p3.line(mx3["x"], mx3["y"], legend_label=train_data.name, color='blue')
             if (train_data.name == "y33"):
                 mx4 = pd.DataFrame(
-                    {'x': self.ideal_functions.data_frame["x"], 'y': self.ideal_functions.data_frame[train_data.name]})
+                    {'x': bestm.data_frame_bestfit["x"], 'y': bestm.data_frame_bestfit[train_data.name]})
                 p4.scatter(train_data.x, train_data.y, fill_color="red", legend_label="Test point", size=8)
                 p4.line(mx4["x"], mx4["y"], legend_label=train_data.name, color='blue')
 
@@ -348,9 +293,11 @@ class QuadraticFitting:
         output_file(f'best_4.html')
         show(p4)
 
-    def aufgbzwei(self):
+    @staticmethod
+    def aufgbzwei(best_fit, test_data):
         z = 0
-        for point in self.test_data:
+        best_match = CheckFit(test_data, best_fit)
+        for point in test_data:
             point_x = point.x
             point_y = point.y
             i = 0
@@ -358,13 +305,11 @@ class QuadraticFitting:
                 current_lowest_classification = None
                 current_lowest_distance = None
                 j = 0
-                for ideal_function in self.best_fits:
-                    tx = pd.DataFrame({'x': self.train_data.abbildliste[j].x, 'y': self.train_data.abbildliste[j].y})
-                    df = pd.DataFrame({'x': ideal_function.x, 'y': ideal_function.y})
-                    mx = pd.DataFrame({'x': self.ideal_functions.data_frame["x"],
-                                       'y': self.ideal_functions.data_frame[ideal_function.name]})
+                for ideal_function, sss in zip(best_fit.abbildliste_bestfit, best_fit.abbildliste_traindata):
+                    tx = pd.DataFrame({'x': best_fit.data_frame_train_data["x"], 'y': best_fit.data_frame_train_data[sss.name]})
+                    mx = pd.DataFrame({'x': best_fit.data_frame_bestfit["x"], 'y': best_fit.data_frame_bestfit[ideal_function.name]})
 
-                    locate_y = self.locate_y_based_on_x(x, df)
+                    locate_y = QuadraticFitting.locate_y_based_on_x(x, mx)
                     distance = abs(locate_y - point_y[i])
                     distancess = tx - mx
                     distancess["y"] = distancess["y"].abs()
@@ -377,26 +322,21 @@ class QuadraticFitting:
                     j += 1
 
                 if (current_lowest_classification != None):
-                    print(str(z) + " X " + str(x) + " Y " + str(point_y[i]) + " klassif " + str(
-                        current_lowest_classification) + " distance " + str(current_lowest_distance))
-                    self.best_fits2.append(
-                        Abbild(x, point_y[i], current_lowest_classification, current_lowest_distance))
+                    best_match.add_match_punkt(Abbild(x, point_y[i], current_lowest_classification, current_lowest_distance))
                     z = z + 1
                 i += 1
+        return best_match
 
-
-train = Data('train.csv')
-test = Data('test.csv')
-ideal = Data('ideal.csv')
-helper = MeineHelperKlasse(4)
+train = TrainData('train.csv')
+test = TestData('test.csv')
+ideal = IdealData('ideal.csv')
+helper = MeineHelperKlasse()
 helper.clear_table()
 helper.df_into_sql(train.data_frame, "training", "training Data")
 helper.df_into_sql(ideal.data_frame, "ideal", "ideal Data")
 helper.write_all_table()
-# ergebnis = QuadraticFitting(train, ideal, test)
-# ergebnis.fit2()
-# ergebnis.show_aufgeins()
-# ergebnis.aufgbzwei()
-#
-# ergebnis.show_aufgzwei()
+ergebnis = QuadraticFitting.fit2(train, ideal)
+QuadraticFitting.show_aufgeins(ergebnis)
+bestm = QuadraticFitting.aufgbzwei(ergebnis, test)
+QuadraticFitting.show_aufgzwei(bestm)
 print("fertig")
