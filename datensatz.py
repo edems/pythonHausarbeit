@@ -45,9 +45,12 @@ class MeineHelperKlasse:
                 Session = sessionmaker(bind=connection)
                 session = Session()
                 tables = self.inspector.get_table_names()
-                for table_name in tables:
-                    drop_table_stmt = text(f"DROP TABLE {table_name}")
-                    connection.execute(drop_table_stmt)
+                # for table_name in tables:
+                #     drop_table_stmt = text(f"DROP TABLE {table_name}")
+                #     connection.execute(drop_table_stmt)
+                #lambda funktion
+                _ = [connection.execute(text(f"DROP TABLE {table_name}")) for table_name in tables]
+
                 session.close()
         except Exception as e:
             print("Fehler beim Löschen der Tabellen:", str(e))
@@ -294,6 +297,20 @@ class QuadraticFitting:
     def fit2(train_data, ideal_functions):
         try:
             best_fits = BestFit(train_data.data_frame)
+            #lambda version
+            # best_fits = BestFit(train_data.data_frame)
+            # _ = [best_fits.add_data_to_bestfit(best_fit) for train_data in train_data
+            #      for best_fit, min_sum_squared_diff in [(None, float('inf'))]
+            #      for ideal_function in ideal_functions
+            #      for ideal_x, ideal_y in [(ideal_function.x, ideal_function.y)]
+            #      for A, m, c, ideal_y_fit, sum_squared_diff in [
+            #          (np.vstack([ideal_x, np.ones(len(ideal_x))]).T,
+            #           np.linalg.lstsq(A, ideal_y, rcond=None)[0],
+            #           m * train_x + c,
+            #           np.sum(np.square(train_y - ideal_y_fit)))]
+            #      if sum_squared_diff < min_sum_squared_diff]
+            # best_fits.fill_bestfit_df()
+
             for train_data in train_data:
                 best_fit = None
                 min_sum_squared_diff = float('inf')
@@ -433,19 +450,19 @@ class QuadraticFitting:
             print("Fehler bei der Ausführung von 'aufgbzwei':", str(e))
 
 
-# train = TrainData('train.csv')
-# test = TestData('test.csv')
-# ideal = IdealData('ideal.csv')
-# helper = MeineHelperKlasse()
-# helper.clear_table()
-# helper.df_into_sql(train.data_frame, "training", "training Data")
-# helper.df_into_sql(ideal.data_frame, "ideal", "ideal Data")
-# ergebnis = QuadraticFitting.fit2(train, ideal)
-# QuadraticFitting.show_aufgeins(ergebnis)
-# bestms = QuadraticFitting.aufgbzwei(ergebnis, test)
-# helper.match_tosql(bestms.data_frame_passendematch, "matches", "Ergebnis Match")
-# QuadraticFitting.show_aufgzwei(bestms)
-# # helper.write_all_table()
+train = TrainData('train.csv')
+test = TestData('test.csv')
+ideal = IdealData('ideal.csv')
+helper = MeineHelperKlasse()
+helper.clear_table()
+helper.df_into_sql(train.data_frame, "training", "training Data")
+helper.df_into_sql(ideal.data_frame, "ideal", "ideal Data")
+ergebnis = QuadraticFitting.fit2(train, ideal)
+QuadraticFitting.show_aufgeins(ergebnis)
+bestms = QuadraticFitting.aufgbzwei(ergebnis, test)
+helper.match_tosql(bestms.data_frame_passendematch, "matches", "Ergebnis Match")
+QuadraticFitting.show_aufgzwei(bestms)
+helper.write_all_table()
 
 class TestQuadraticFitting:
     def __init__(self):
