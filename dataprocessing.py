@@ -1,99 +1,9 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, inspect, text, MetaData, Table
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 import pandas as pd
 import math
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.use('Qt5Agg')
 from bokeh.plotting import figure, output_file, show
 from bokeh.io import output_notebook
-
 output_notebook()
-
-
-class MeineHelperKlasse:
-    def __init__(self):
-        self.names = ""
-        self.username = 'adam'
-        self.password = 'KpCamSP0GZKrGGnan6uQ'
-        self.host = 'hausarbeit.mysql.database.azure.com'
-        self.database = 'hausarbeit'
-        self.engine = create_engine(
-            f"mysql+mysqlconnector://{self.username}:{self.password}@{self.host}/{self.database}", echo=True)
-        self.inspector = inspect(self.engine)
-
-    def df_into_sql(self, df, t_name, table_name):
-        try:
-            copy_of_function_data = df.copy()
-            copy_of_function_data.columns = [name.capitalize() + table_name for name in copy_of_function_data.columns]
-            copy_of_function_data.set_index(copy_of_function_data.columns[0], inplace=True)
-
-            copy_of_function_data.to_sql(
-                t_name,
-                self.engine,
-                if_exists="replace",
-                index=True,
-            )
-        except Exception as e:
-            print(f"Fehler beim Schreiben von {table_name} in die Datenbank:", str(e))
-
-    def clear_table(self):
-        try:
-            with self.engine.connect() as connection:
-                Session = sessionmaker(bind=connection)
-                session = Session()
-                tables = self.inspector.get_table_names()
-                # for table_name in tables:
-                #     drop_table_stmt = text(f"DROP TABLE {table_name}")
-                #     connection.execute(drop_table_stmt)
-                #lambda funktion
-                _ = [connection.execute(text(f"DROP TABLE {table_name}")) for table_name in tables]
-
-                session.close()
-        except Exception as e:
-            print("Fehler beim Löschen der Tabellen:", str(e))
-
-    def write_all_table(self):
-        try:
-            with self.engine.connect() as connection:
-                Session = sessionmaker(bind=connection)
-                session = Session()
-                tables = self.inspector.get_table_names()
-                for table in tables:
-                    print("Meine neue Table")
-                    print(table)
-                    columns = self.inspector.get_columns(table)
-                    print(f"Table: {table}")
-                    print("Columns:")
-                    for column in columns:
-                        print(column['name'], column['type'])
-                    result_proxy = session.execute(text(f"SELECT * FROM {table}"))
-                    results = result_proxy.fetchall()
-
-                    for row in results:
-                        print(row)
-                session.close()
-        except Exception as e:
-            print("Fehler beim Lesen der Tabellen:", str(e))
-
-    def match_tosql(self, bestm, t_name, table_name):
-        try:
-            copy_of_function_data = bestm.copy()
-            copy_of_function_data.columns = [name.capitalize() + table_name for name in copy_of_function_data.columns]
-            copy_of_function_data.set_index(copy_of_function_data.columns[0], inplace=True)
-
-            copy_of_function_data.to_sql(
-                t_name,
-                self.engine,
-                if_exists="replace",
-                index=True,
-            )
-        except Exception as e:
-            print(f"Fehler beim Schreiben des Match-Ergebnisses in die Datenbank:", str(e))
-
-
 class DataBasis:
     def __init__(self):
         self.data_frame = pd.DataFrame
@@ -339,12 +249,10 @@ class QuadraticFitting:
         except pd.errors.PandasError as pd_error:
             # Fehler bei der Verarbeitung von pandas-Datenstrukturen
             print("Fehler bei der Verarbeitung von pandas-Datenstrukturen:", str(pd_error))
-            # Weitere Fehlerbehandlungsmaßnahmen durchführen oder den Fehler weiterreichen
 
         except Exception as e:
             # Allgemeiner Fehler
             print("Allgemeiner Fehler beim Ausführen der Methode fit2:", str(e))
-            # Weitere Fehlerbehandlungsmaßnahmen durchführen oder den Fehler weiterreichen
 
 
     @staticmethod
@@ -448,69 +356,3 @@ class QuadraticFitting:
             return best_match
         except Exception as e:
             print("Fehler bei der Ausführung von 'aufgbzwei':", str(e))
-
-
-train = TrainData('train.csv')
-test = TestData('test.csv')
-ideal = IdealData('ideal.csv')
-helper = MeineHelperKlasse()
-helper.clear_table()
-helper.df_into_sql(train.data_frame, "training", "training Data")
-helper.df_into_sql(ideal.data_frame, "ideal", "ideal Data")
-ergebnis = QuadraticFitting.fit2(train, ideal)
-QuadraticFitting.show_aufgeins(ergebnis)
-bestms = QuadraticFitting.aufgbzwei(ergebnis, test)
-helper.match_tosql(bestms.data_frame_passendematch, "matches", "Ergebnis Match")
-QuadraticFitting.show_aufgzwei(bestms)
-helper.write_all_table()
-
-class TestQuadraticFitting:
-    def __init__(self):
-        self.train_file = 'train.csv'
-        self.test_file = 'test.csv'
-        self.ideal_file = 'ideal.csv'
-        self.helper = MeineHelperKlasse()
-
-    def run(self):
-        try:
-            # Daten aus CSV-Dateien laden
-            train = TrainData(self.train_file)
-            test = TestData(self.test_file)
-            ideal = IdealData(self.ideal_file)
-
-            # Daten in die Datenbank schreiben
-            self.helper.clear_table()
-            self.helper.df_into_sql(train.data_frame, "training", "training Data")
-            self.helper.df_into_sql(ideal.data_frame, "ideal", "ideal Data")
-
-            # Quadratische Anpassung durchführen
-            best_fit = QuadraticFitting.fit2(train, ideal)
-
-            # Ergebnisse anzeigen
-            QuadraticFitting.show_aufgeins(best_fit)
-
-            # Anpassung an Testdaten durchführen
-            best_match = QuadraticFitting.aufgbzwei(best_fit, test)
-
-            # Ergebnisse in die Datenbank schreiben
-            self.helper.match_tosql(best_match.data_frame_passendematch, "matches", "Ergebnis Match")
-
-            # Zweite Ausgabe anzeigen
-            QuadraticFitting.show_aufgzwei(best_match)
-
-            # Alle Tabellen aus der Datenbank anzeigen
-            self.helper.write_all_table()
-
-        except FileNotFoundError:
-            print("Eine oder mehrere der CSV-Dateien wurden nicht gefunden.")
-        except PermissionError:
-            print("Keine Berechtigung zum Lesen oder Schreiben der Dateien.")
-        except ValueError:
-            print("Ein Wertefehler ist aufgetreten.")
-        except Exception as e:
-            print("Fehler beim Ausführen des Tests:", str(e))
-
-
-# Testklasse ausführen
-test = TestQuadraticFitting()
-test.run()
