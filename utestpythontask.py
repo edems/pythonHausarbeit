@@ -1,6 +1,6 @@
 import unittest
 from dataprocessing import TrainData, TestData, IdealData, QuadraticFitting
-from sqlhelper import MeineHelperKlasse
+from sqlhelper import SQLHelperKlasse
 
 class MyTestCase(unittest.TestCase):
     def test_something(self):
@@ -10,7 +10,7 @@ class MyTestCase(unittest.TestCase):
             self.train_file = 'train.csv'
             self.test_file = 'test.csv'
             self.ideal_file = 'ideal.csv'
-            self.helper = MeineHelperKlasse()
+            self.helper = SQLHelperKlasse()
             # Daten aus CSV-Dateien laden
             train = TrainData(self.train_file)
             test = TestData(self.test_file)

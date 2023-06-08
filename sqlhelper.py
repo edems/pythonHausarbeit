@@ -2,8 +2,11 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, inspect, t
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-class MeineHelperKlasse:
+class SQLHelperKlasse:
     def __init__(self):
+        """
+        Initialisiert eine Instanz der SQLHelperKlasse.
+        """
         self.names = ""
         self.username = 'adam'
         self.password = 'KpCamSP0GZKrGGnan6uQ'
@@ -14,6 +17,14 @@ class MeineHelperKlasse:
         self.inspector = inspect(self.engine)
 
     def df_into_sql(self, df, t_name, table_name):
+        """
+        Schreibt ein DataFrame in eine SQL-Tabelle.
+
+        Args:
+            df (pandas.DataFrame): Das DataFrame, das geschrieben werden soll.
+            t_name (str): Der Name der Tabelle in der Datenbank.
+            table_name (str): Der Name der Tabelle im DataFrame.
+        """
         try:
             copy_of_function_data = df.copy()
             copy_of_function_data.columns = [name.capitalize() + table_name for name in copy_of_function_data.columns]
@@ -29,6 +40,9 @@ class MeineHelperKlasse:
             print(f"Fehler beim Schreiben von {table_name} in die Datenbank:", str(e))
 
     def clear_table(self):
+        """
+        Löscht alle Tabellen in der Datenbank.
+        """
         try:
             with self.engine.connect() as connection:
                 Session = sessionmaker(bind=connection)
@@ -39,12 +53,14 @@ class MeineHelperKlasse:
                 #     connection.execute(drop_table_stmt)
                 #lambda funktion
                 _ = [connection.execute(text(f"DROP TABLE {table_name}")) for table_name in tables]
-
                 session.close()
         except Exception as e:
             print("Fehler beim Löschen der Tabellen:", str(e))
 
     def write_all_table(self):
+        """
+        Liest alle Tabellen in der Datenbank und gibt sie aus.
+        """
         try:
             with self.engine.connect() as connection:
                 Session = sessionmaker(bind=connection)
@@ -68,6 +84,14 @@ class MeineHelperKlasse:
             print("Fehler beim Lesen der Tabellen:", str(e))
 
     def match_tosql(self, bestm, t_name, table_name):
+        """
+        Schreibt das Match-Ergebnis in eine SQL-Tabelle.
+
+        Args:
+            bestm (pandas.DataFrame): Das DataFrame mit dem Match-Ergebnis.
+            t_name (str): Der Name der Tabelle in der Datenbank.
+            table_name (str): Der Name der Tabelle im DataFrame.
+        """
         try:
             copy_of_function_data = bestm.copy()
             copy_of_function_data.columns = [name.capitalize() + table_name for name in copy_of_function_data.columns]
