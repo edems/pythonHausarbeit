@@ -3,6 +3,9 @@ import math
 import numpy as np
 from bokeh.plotting import figure, output_file, show
 from bokeh.io import output_notebook
+from bokeh.plotting import figure, output_file, show
+from bokeh.plotting import figure, show, output_file
+from bokeh.models import HoverTool
 output_notebook()
 class DataBasis:
     """
@@ -442,30 +445,34 @@ class QuadraticFitting:
             # Allgemeiner Fehler
             print("Allgemeiner Fehler beim Ausführen der Methode bestfit:", str(e))
 
-
-
     @staticmethod
     def show_task_one_result(best_fit):
+        """
+        Zeigt die Ergebnisse für Aufgabe 1 an.
+
+        Parameters:
+            best_fit (BestFit): Die BestFit-Instanz mit den besten Abbildungen.
+
+        Returns:
+            None
+        """
         try:
-            # for i, train_data in enumerate(best_fit.abbildliste_traindata):
-            #     p = figure(title=f'Best Fit ', x_axis_label='x', y_axis_label='y')
-            #     train_x = train_data.x
-            #     train_y = train_data.y
-            #     p.scatter(train_x, train_y, legend_label='Train Data', color='blue')
-            #     x = best_fit.abbildliste_bestfit[i].x
-            #     y = best_fit.abbildliste_bestfit[i].y
-            #     p.line(x, y, legend_label=best_fit.abbildliste_bestfit[i].name, color='red')
-            #     output_file(f'best_fit_{i + 1}.html')
-            #     show(p)
-            #     p = None
             for i, train_data in enumerate(best_fit.abbildliste_traindata):
-                p = figure(title=f'Best Fit', x_axis_label='x', y_axis_label='y', width=800, height=600)
+                p = figure(title=f'Best Fits für {best_fit.abbildliste_bestfit[i].name}', x_axis_label='x',
+                           y_axis_label='y', width=1200, height=900)
                 train_x = train_data.x
                 train_y = train_data.y
-                p.scatter(train_x, train_y, legend_label='Train Data', color='blue', size=8)
+
+                # Scatter-Diagramm für Trainingsdaten erstellen
+                p.scatter(train_x, train_y, legend_label='Train Data', color='blue', size=5)
+
                 x = best_fit.abbildliste_bestfit[i].x
                 y = best_fit.abbildliste_bestfit[i].y
-                p.line(x, y, legend_label=best_fit.abbildliste_bestfit[i].name, color='red', line_width=2)
+
+                # Linie für ideale Funktion hinzufügen
+                p.line(x, y, legend_label=f'Ideale Funktion {best_fit.abbildliste_bestfit[i].name}', color='red',
+                       line_width=2)
+
                 output_file(f'best_fit_{i + 1}.html')
                 show(p)
                 p = None
@@ -475,6 +482,16 @@ class QuadraticFitting:
 
     @staticmethod
     def search_y_at_x(x, ideal_data):
+        """
+        Sucht den y-Wert für einen gegebenen x-Wert in den idealen Daten.
+
+        Parameters:
+            x (float): Der gesuchte x-Wert.
+            ideal_data (DataFrame): Die idealen Daten.
+
+        Returns:
+            float: Der entsprechende y-Wert.
+        """
         try:
             s_key = ideal_data["x"] == x
             return ideal_data.loc[s_key].iat[0, 1]
@@ -485,31 +502,56 @@ class QuadraticFitting:
             # Allgemeiner Fehler
             print("Fehler bei der Suche nach dem y-Wert:", str(e))
 
-
     @staticmethod
     def show_task_two_result(bestm):
-        try:
-            figures = {}
+        """
+        Zeigt die Ergebnisse für Aufgabe 2 an.
 
+        Parameters:
+            bestm (BestM): Die BestM-Instanz mit den Ergebnissen.
+
+        Returns:
+            None
+        """
+        try:
+            figures = {}  # Dictionary zur Speicherung der Abbildungen
+
+            # Schleife über die passenden Punkte
             for train_data in bestm.abbildliste_passendepunkte:
                 figure_title = train_data.name
                 html_name = f'{figure_title}.html'
 
                 if figure_title not in figures:
                     figures[figure_title] = {
-                        "figure": figure(title=figure_title, x_axis_label='x', y_axis_label='y'),
+                        "figure": figure(
+                            title=str("Die Passende Test Punkte für die Ideale Funktion " + train_data.name),
+                            x_axis_label='x', y_axis_label='y', width=1200, height=900),
                         "html": html_name
                     }
 
                 figure_data = figures[figure_title]
+
                 try:
-                    mx = pd.DataFrame({'x': bestm.data_frame_bestfit["x"], 'y': bestm.data_frame_bestfit[figure_title]})
-                    figure_data["figure"].scatter(train_data.x, train_data.y, fill_color="red",
-                                                  legend_label="Test point", size=8)
-                    figure_data["figure"].line(mx["x"], mx["y"], legend_label=figure_title, color='blue')
+                    # Erstellen des DataFrames für die ideale Funktion
+                    ideale_func_df = pd.DataFrame(
+                        {'x': bestm.data_frame_bestfit["x"], 'y': bestm.data_frame_bestfit[figure_title]})
+
+                    # Scatter-Diagramm erstellen
+                    scatter = figure_data["figure"].scatter(train_data.x, train_data.y, fill_color="red",
+                                                            legend_label="Test point", size=8)
+
+                    # Hover-Tool hinzufügen, um Informationen bei Hover anzuzeigen
+                    hover = HoverTool(renderers=[scatter], tooltips=[('Abweichung', f'{train_data.distance}')],
+                                      mode='mouse')
+                    figure_data["figure"].add_tools(hover)
+
+                    # Linie für die ideale Funktion hinzufügen
+                    figure_data["figure"].line(ideale_func_df["x"], ideale_func_df["y"], legend_label=figure_title,
+                                               color='blue')
                 except Exception as e:
                     print("Fehler beim Erstellen der Abbildungen:", str(e))
 
+            # Anzeigen der Abbildungen
             for figure_data in figures.values():
                 try:
                     output_file(figure_data["html"])
@@ -517,32 +559,51 @@ class QuadraticFitting:
                 except Exception as e:
                     print("Fehler beim Anzeigen der Abbildungen:", str(e))
         except Exception as e:
-            print("Fehler bei der Ausführung von 'show_aufgzwei':", str(e))
+            print("Fehler bei der Ausführung von 'show_task_two_result':", str(e))
 
     @staticmethod
     def aufgbzwei(best_fit, test_data):
+        """
+        Führt Aufgabe 2 aus, indem die besten Übereinstimmungen zwischen Testdatenpunkten und idealen Funktionen ermittelt werden.
+
+        Parameters:
+            best_fit (BestFit): Die BestFit-Instanz mit den besten Abbildungen.
+            test_data (List[Point]): Die Liste der Testdatenpunkte.
+
+        Returns:
+            CheckMappingFit: Die CheckMappingFit-Instanz mit den besten Übereinstimmungen.
+        """
         try:
             best_match = CheckMappingFit(test_data, best_fit)
+
+            # Schleife über die Testdatenpunkte
             for point in test_data:
                 point_x = point.x
                 point_y = point.y
+                # Schleife für die einzelbetrachtung der Testdatenpunkte
                 for x, y in zip(point_x, point_y):
                     actual_match = None
                     actual_distance = None
+
+                    # Schleife über die idealen Funktionen und zugehörige Trainingsdaten
                     for ideal_function, train_f in zip(best_fit.abbildliste_bestfit, best_fit.abbildliste_traindata):
                         try:
+                            # Erstellen der DataFrames für die Trainings- und besten Fits-Daten
                             train_data_df = pd.DataFrame({'x': best_fit.data_frame_train_data["x"],
-                                               'y': best_fit.data_frame_train_data[train_f.name]})
+                                                          'y': best_fit.data_frame_train_data[train_f.name]})
                             best_fit_df = pd.DataFrame({'x': best_fit.data_frame_bestfit["x"],
-                                               'y': best_fit.data_frame_bestfit[ideal_function.name]})
+                                                        'y': best_fit.data_frame_bestfit[ideal_function.name]})
 
+                            # Suche nach dem y-Wert an der gegebenen x-Position
                             locate_y = QuadraticFitting.search_y_at_x(x, best_fit_df)
-                            distance = abs(locate_y - y)
 
+                            # Berechnung der Abweichungen
+                            distance = abs(locate_y - y)
                             matrixsubtraktion = train_data_df - best_fit_df
                             matrixsubtraktion["y"] = matrixsubtraktion["y"].abs()
                             largest_divergence = math.sqrt(2) * max(matrixsubtraktion["y"])
 
+                            # Überprüfung auf beste Übereinstimmung
                             if (abs(distance < largest_divergence)):
                                 if ((actual_match == None) or (distance < actual_distance)):
                                     actual_match = ideal_function.name
@@ -552,7 +613,10 @@ class QuadraticFitting:
 
                     if (actual_match != None):
                         best_match.add_match_punkt(Abbild(x, y, actual_match, actual_distance))
+
             best_match.fill_match_to_df()
             return best_match
         except Exception as e:
             print("Fehler bei der Ausführung von 'aufgbzwei':", str(e))
+
+
