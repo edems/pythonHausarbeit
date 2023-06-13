@@ -79,7 +79,7 @@ class QuadraticFittingTestCase(unittest.TestCase):
         test_best_fits.fill_bestfit_to_df()
 
         # Execute the method to be tested
-        best_fit = QuadraticFitting.best_fits(test_trainData, test_IdealData)
+        best_fit = QuadraticFitting.calculate_best_fits(test_trainData, test_IdealData)
 
         # Check if the generated best fit is correct
         self.assertTrue(best_fit.data_frame_bestfit.equals(test_best_fits.data_frame_bestfit))
