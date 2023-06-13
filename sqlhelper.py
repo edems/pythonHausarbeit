@@ -2,10 +2,10 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, inspect, t
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-class SQLHelperKlasse:
+class SQLHelperClass:
     def __init__(self):
         """
-        Initialisiert eine Instanz der SQLHelperKlasse.
+        Initializes an instance of the SQLHelperClass.
         """
         self.names = ""
         self.username = 'adam'
@@ -16,14 +16,14 @@ class SQLHelperKlasse:
             f"mysql+mysqlconnector://{self.username}:{self.password}@{self.host}/{self.database}", echo=True)
         self.inspector = inspect(self.engine)
 
-    def df_into_sql(self, df, t_name, table_name):
+    def write_dataframe_into_table(self, df, t_name, table_name):
         """
-        Schreibt ein DataFrame in eine SQL-Tabelle.
+        Writes a DataFrame into an SQL table.
 
         Args:
-            df (pandas.DataFrame): Das DataFrame, das geschrieben werden soll.
-            t_name (str): Der Name der Tabelle in der Datenbank.
-            table_name (str): Der Name der Tabelle im DataFrame.
+            df (pandas.DataFrame): The DataFrame to be written.
+            t_name (str): The name of the table in the database.
+            table_name (str): The name of the table in the DataFrame.
         """
         try:
             copy_of_function_data = df.copy()
@@ -37,29 +37,25 @@ class SQLHelperKlasse:
                 index=True,
             )
         except Exception as e:
-            print(f"Fehler beim Schreiben von {table_name} in die Datenbank:", str(e))
+            print(f"Error writing {table_name} into the database:", str(e))
 
-    def clear_table(self):
+    def clear_tables(self):
         """
-        Löscht alle Tabellen in der Datenbank.
+        Deletes all tables in the database.
         """
         try:
             with self.engine.connect() as connection:
                 Session = sessionmaker(bind=connection)
                 session = Session()
                 tables = self.inspector.get_table_names()
-                # for table_name in tables:
-                #     drop_table_stmt = text(f"DROP TABLE {table_name}")
-                #     connection.execute(drop_table_stmt)
-                #lambda funktion
                 _ = [connection.execute(text(f"DROP TABLE {table_name}")) for table_name in tables]
                 session.close()
         except Exception as e:
-            print("Fehler beim Löschen der Tabellen:", str(e))
+            print("Error clearing tables:", str(e))
 
     def write_all_table(self):
         """
-        Liest alle Tabellen in der Datenbank und gibt sie aus.
+        Reads all tables in the database and prints them.
         """
         try:
             with self.engine.connect() as connection:
@@ -67,7 +63,7 @@ class SQLHelperKlasse:
                 session = Session()
                 tables = self.inspector.get_table_names()
                 for table in tables:
-                    print("Meine neue Table")
+                    print("My new table")
                     print(table)
                     columns = self.inspector.get_columns(table)
                     print(f"Table: {table}")
@@ -81,16 +77,16 @@ class SQLHelperKlasse:
                         print(row)
                 session.close()
         except Exception as e:
-            print("Fehler beim Lesen der Tabellen:", str(e))
+            print("Error reading tables:", str(e))
 
     def match_tosql(self, bestm, t_name, table_name):
         """
-        Schreibt das Match-Ergebnis in eine SQL-Tabelle.
+        Writes the match result into an SQL table.
 
         Args:
-            bestm (pandas.DataFrame): Das DataFrame mit dem Match-Ergebnis.
-            t_name (str): Der Name der Tabelle in der Datenbank.
-            table_name (str): Der Name der Tabelle im DataFrame.
+            bestm (pandas.DataFrame): The DataFrame with the match result.
+            t_name (str): The name of the table in the database.
+            table_name (str): The name of the table in the DataFrame.
         """
         try:
             copy_of_function_data = bestm.copy()
@@ -104,5 +100,4 @@ class SQLHelperKlasse:
                 index=True,
             )
         except Exception as e:
-            print(f"Fehler beim Schreiben des Match-Ergebnisses in die Datenbank:", str(e))
-
+            print(f"Error writing the match result into the database:", str(e))
