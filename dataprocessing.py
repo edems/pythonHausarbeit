@@ -44,7 +44,7 @@ class DataBasis:
         self.image_list = []
 
 
-class Image:
+class FuncImage:
     """
     A class required for the structure of X Y functions.
     """
@@ -93,7 +93,7 @@ class TrainData(DataBasis):
                     x = self.data_frame['x'].values  # Extract the x-values
                     y = self.data_frame[dataset].values  # Extract the y-values
                     name = dataset  # Extract the name of the dataset
-                    self.image_list.append(Image(x, y, name))  # Add an Function image object to the image list
+                    self.image_list.append(FuncImage(x, y, name))  # Add an Function image object to the image list
         except FileNotFoundError:
             print("The specified file was not found.")
         except Exception as e:
@@ -151,13 +151,13 @@ class IdealData(DataBasis):
         try:
             DataBasis.__init__(self)  # Initialization of the DataBasis class
             self.data_frame = pd.read_csv(filename)  # Read the CSV file into a DataFrame
-            self.image_list = []  # Initialize an Function empty image list
+            self.image_list = []  # Initialize an Function empty func image list
             for dataset in self.data_frame:
                 if 'x' != dataset:
                     x = self.data_frame['x'].values  # Extract the x-values
                     y = self.data_frame[dataset].values  # Extract the y-values
                     name = dataset  # Extract the name of the dataset
-                    self.image_list.append(Image(x, y, name))  # Add an Image object to the Function image list
+                    self.image_list.append(FuncImage(x, y, name))  # Add an FuncImage object to the Function image list
         except FileNotFoundError:
             print("The specified file was not found.")
         except Exception as e:
@@ -220,7 +220,7 @@ class TestData(DataBasis):
                     x = self.data_frame['x'].values  # Extract the x-values
                     y = self.data_frame[dataset].values  # Extract the y-values
                     name = dataset  # Extract the name of the dataset
-                    self.image_list.append(Image(x, y, name))  # Add an Function Image object to the image list
+                    self.image_list.append(FuncImage(x, y, name))  # Add an Function Image object to the image list
         except FileNotFoundError:
             print("The specified file was not found.")
         except Exception as e:
@@ -280,7 +280,7 @@ class BestFits(DataBasis):
                     x = self.data_frame_train_data['x'].values  # Extract the x-values
                     y = self.data_frame_train_data[dataset].values  # Extract the y-values
                     name = dataset  # Extract the name of the dataset
-                    self.image_list_traindata.append(Image(x, y, name))  # Add an Image object to the training data list
+                    self.image_list_traindata.append(FuncImage(x, y, name))  # Add an FuncImage object to the training data list
         except FileNotFoundError:
             print("The specified file was not found.")
         except Exception as e:
@@ -296,7 +296,7 @@ class BestFits(DataBasis):
         Returns:
             None
         """
-        self.image_list_bestfit.append(Image(image.x, image.y, image.name))
+        self.image_list_bestfit.append(FuncImage(image.x, image.y, image.name))
 
     def fill_bestfit_to_df(self):
         """
@@ -367,7 +367,7 @@ class CheckMappingFit(DataBasis):
         Adds a matching point to the list of matching points.
 
         Args:
-            image: The Image object to be added.
+            image: The FuncImage object to be added.
 
         Returns:
             None
@@ -631,7 +631,7 @@ class QuadraticFitting:
                             print("Error during calculation:", str(e))
 
                     if actual_match is not None:
-                        best_match.add_match_point(Image(x, y, actual_match, actual_distance))
+                        best_match.add_match_point(FuncImage(x, y, actual_match, actual_distance))
 
             best_match.fill_match_to_df()
             return best_match
@@ -640,4 +640,3 @@ class QuadraticFitting:
         except Exception as e:
             print("Error executing 'perform_task_two':", str(e))
 
-    # Custom exception class

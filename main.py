@@ -29,4 +29,4 @@ if __name__ == '__main__':
     # Write the match result into the database with the corresponding ideal function and the deviation
     sql_helper.write_dataframe_into_table(best_matches.data_frame_matching, "matches", " Result")
     # Output all table contents from the database using print()
-    # sql_helper.print_all_tables()
+    sql_helper.print_all_tables()
